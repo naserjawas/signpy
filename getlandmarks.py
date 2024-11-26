@@ -13,21 +13,28 @@ import os
 import glob
 import argparse
 import cv2 as cv
+import mediapipe as mp
 from pathlib import Path
 
+def parse_args():
+    description = "Program to produce hand, body, and face landmarks"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("-p", "--path", help="path to video dir",
+                        dest="path", type=str, required=True)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="This files produces hand body landmarks from the signer.")
-    parser.add_argument("-p", "--path", help="path to video dir", dest="path", required=True)
+    return parser.parse_args()
 
-    args = parser.parse_args()
-
+def main():
+    args = parse_args()
     datapath = Path(args.path)
-    dirname =  str(datapath) + os.sep
-    print("dirname:", dirname)
+    dirname = str(datapath) + os.sep
     filenames = sorted(glob.glob(dirname + "*-0.png"))
     images = [cv.imread(filename, cv.IMREAD_COLOR)
               for filename in filenames]
 
-    print("Load", len(images), "images... OK")
+    print(f"Load {len(images)} images... OK")
+
+if __name__ == "__main__":
+    main()
+
 
