@@ -24,20 +24,50 @@ def load_rwth_phoenix(datapath):
 
     return images
 
-def detect(body, img):
-    with body.Hands(
-        static_image_mode = True,
-        max_num_hands = 2,
-        min_detection_confidence=0.5
-    ) as hands:
-        img2 = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-        result = hands.process(img2)
+def detect_hands(body, img):
+    hands = body.Hands(static_image_mode=True)
+    result = hands.process(img)
 
-        if result.multi_hand_landmarks:
-            return result
-        else:
-            return None
+    if result.multi_hand_landmarks:
+        return result
+    else:
+        return None
 
+def detect_face(body, img):
+    face = body.FaceMesh(static_image_mode=True, refine_landmarks=True)
+    result = face.process(img)
+
+    if result.multi_face_landmarks:
+        return result
+    else:
+        return None
+
+def detect_pose(body, img):
+    pose = body.Pose(static_image_mode=True, model_complexity=2, enable_segmentation=True)
+    result = pose.process(img)
+
+    if result.pose_landmarks:
+        return result
+    else:
+        return None
+
+def draw_landmark(image, landmark):
+    ih, iw, _ = image.shape
+    for l in landmark:
+        y = int(l.y * ih)
+        x = int(l.x * iw)
+        cv.circle(image, (x, y), 1, (255, 255, 255), -1)
+
+    return image
+
+def draw_pose(image, pose):
+    ih, iw, _ = image.shape
+    for i in range(25):
+        y = int(pose.pose_landmarks.landmark[i].y * ih)
+        x = int(pose.pose_landmarks.landmark[i].x * iw)
+        cv.circle(image, (x, y), 1, (255, 255, 255), -1)
+
+    return image
 
 def parse_args():
     description = "Program to produce hand, body, and face landmarks"
@@ -54,20 +84,25 @@ def main():
     print(f"Load {len(images)} images... OK")
 
     mp_hands = mp.solutions.hands
-    mp_drawing = mp.solutions.drawing_utils
-    mp_drawing_styles = mp.solutions.drawing_styles
+    mp_face = mp.solutions.face_mesh
+    mp_pose = mp.solutions.pose
 
     for image in images:
-        hands = detect(mp_hands, image)
-        if hands is not None:
-            for hand_landmarks in hands.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                    image,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style()
-                )
+        image2 = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+
+        # hands = detect_hands(mp_hands, image2)
+        # if hands is not None:
+        #     for hand_landmarks in hands.multi_hand_landmarks:
+        #         image = draw_landmark(image, hand_landmarks.landmark)
+
+        # face = detect_face(mp_face, image2)
+        # if face is not None:
+        #     for face_mesh in face.multi_face_landmarks:
+        #         image = draw_landmark(image, face_mesh.landmark)
+
+        pose = detect_pose(mp_pose, image2)
+        if pose is not None:
+            image = draw_pose(image, pose)
 
         cv.imshow("image", image)
         k = cv.waitKey(0) & 0xFF
