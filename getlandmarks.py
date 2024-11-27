@@ -3,7 +3,9 @@ This is getlandmarks.py file.
 
 This file is used to get the hand and body landmarks / points from the signer.
 It uses mediapipe and this source code is adapted from:
-https://mediapipe.readthedocs.io/en/latest/solutions/hands.html
+
+Mediapipe documentation can be found here:
+https://github.com/google-ai-edge/mediapipe/tree/master/docs/solutions
 
 author: naserjawas
 date: 25 November 2024
