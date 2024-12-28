@@ -71,6 +71,12 @@ def draw_pose(image, pose):
 
     return image
 
+def calc_optical_flow(prev_i, next_i, of):
+    flow = of.calc(prev_i, next_i, None)
+    mag, ang = cv.cartToPolar(flow[..., 0], flow[..., 1], angleInDegrees=True)
+
+    return mag, ang
+
 def parse_args():
     description = "Program to produce hand, body, and face landmarks"
     parser = argparse.ArgumentParser(description=description)
@@ -85,12 +91,23 @@ def main():
     images = load_rwth_phoenix(datapath)
     print(f"Load {len(images)} images... OK")
 
+    # create mediapipe 
     mp_hands = mp.solutions.hands
     mp_face = mp.solutions.face_mesh
     mp_pose = mp.solutions.pose
 
+    # create RLOF
+    of = cv.optflow.createOptFlow_DenseRLOF()
+
+    fid = -1
     for image in images:
+        fid += 1
         image2 = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        next_i = images[fid].copy()
+        if fid == 0:
+            prev_i = images[fid].copy()
+        else:
+            prev_i = images[fid-1].copy()
 
         # hands = detect_hands(mp_hands, image2)
         # if hands is not None:
@@ -106,7 +123,10 @@ def main():
         if pose is not None:
             image = draw_pose(image, pose)
 
+        mag, ang = calc_optical_flow(prev_i, next_i, of)
+
         cv.imshow("image", image)
+        cv.imshow("mag", mag)
         k = cv.waitKey(0) & 0xFF
         if k == ord('q'):
             cv.destroyAllWindows()
