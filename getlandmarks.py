@@ -16,6 +16,8 @@ import glob
 import argparse
 import cv2 as cv
 import mediapipe as mp
+import numpy as np
+import matplotlib.pyplot as plt
 from pathlib import Path
 
 def load_rwth_phoenix(datapath):
@@ -79,19 +81,19 @@ def calc_optical_flow(prev_i, next_i, of):
 
 def get_mag_on_pose(mag, pose):
     ih, iw = mag.shape
-    summag = 0
-    summag_r = 0
-    summag_l = 0
+    smag = 0
+    smag_r = 0
+    smag_l = 0
     for i in range(15, 23):
         y = int(pose.pose_landmarks.landmark[i].y * ih)
         x = int(pose.pose_landmarks.landmark[i].x * iw)
-        summag += mag[y][x]
+        smag += mag[y][x]
         if i % 2 == 0:
-            summag_r += mag[y][x]
+            smag_r += mag[y][x]
         else:
-            summag_l += mag[y][x]
+            smag_l += mag[y][x]
 
-    return summag, summag_r, summag_l
+    return smag, smag_r, smag_l
 
 def parse_args():
     description = "Program to produce hand, body, and face landmarks"
@@ -116,6 +118,8 @@ def main():
     of = cv.optflow.createOptFlow_DenseRLOF()
 
     summag = []
+    summag_r = []
+    summag_l = []
     fid = -1
     for image in images:
         fid += 1
@@ -139,17 +143,31 @@ def main():
         mag, ang = calc_optical_flow(prev_i, next_i, of)
 
         pose = detect_pose(mp_pose, image2)
+
         if pose is not None:
             image = draw_pose(image, pose)
-            print(f"summag: {get_mag_on_pose(mag, pose)}")
+            smag, smag_r, smag_l = get_mag_on_pose(mag, pose)
+        else:
+            smag, smag_r, smag_l = 0, 0, 0
 
+        summag.append(smag)
+        summag_r.append(smag_r)
+        summag_l.append(smag_l)
 
-        cv.imshow("image", image)
-        cv.imshow("mag", mag)
-        k = cv.waitKey(0) & 0xFF
-        if k == ord('q'):
-            cv.destroyAllWindows()
-            break
+        # cv.imshow("image", image)
+        # cv.imshow("mag", mag)
+        # k = cv.waitKey(0) & 0xFF
+        # if k == ord('q'):
+        #     cv.destroyAllWindows()
+        #     break
+
+    px = list(range(len(summag)))
+    fig, ax = plt.subplots()
+    ax.plot(px, summag)
+    ax.plot(px, summag_r)
+    ax.plot(px, summag_l)
+
+    plt.show()
 
 if __name__ == "__main__":
     main()
