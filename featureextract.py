@@ -1,8 +1,13 @@
 """
-This is getlandmarks.py file.
+This is featureextract.py file.
 
-This file is used to get the hand and body landmarks / points from the signer.
-It uses mediapipe and this source code is adapted from:
+This file is used to get feature from the signer.
+The feature is the sum of magnitude from the signer's hands.
+
+The magnitude is calculated by RLOF dense optical flow.
+
+The hand and body landmarks / points from the signer is taken from mediapipe.
+The mediapipe usage on this source code is adapted from:
 
 Mediapipe documentation can be found here:
 https://github.com/google-ai-edge/mediapipe/tree/master/docs/solutions
