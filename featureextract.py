@@ -1,7 +1,8 @@
 """
 This is featureextract.py file.
 
-This file is used to get feature from the signer.
+This file is used to get feature from the signer video from 
+RWTH-PHOENIX-Weather dataset.
 The feature is the sum of magnitude from the signer's hands.
 
 The magnitude is calculated by RLOF dense optical flow.
@@ -11,6 +12,27 @@ The mediapipe usage on this source code is adapted from:
 
 Mediapipe documentation can be found here:
 https://github.com/google-ai-edge/mediapipe/tree/master/docs/solutions
+
+usage:
+    python featureextract.py --path <path to video directory> 
+                             --groundtruth <path ground truth file>
+                             --smooth
+                             --figureplot
+arguments:
+    --path (required):
+        Set to the path of RWTH-PHOENIX-Weather video directory.
+        This script only accept one video.
+
+    --groundtruth (optional):
+        Set to the path of ground truth file.
+        It uses RWTH-PHOENIX-Weather automatic annotation file.
+
+    --smooth (optional)
+        Set if smooth signal is needed. The smoothing process uses
+        Savitzky-Golay filter.
+
+    --figureplot (optional)
+        Set if a figure of signal ploting is needed.
 
 author: naserjawas
 date: 25 November 2024
