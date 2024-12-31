@@ -24,6 +24,8 @@ import mediapipe as mp
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+from loadgroundtruth import load_gt
+from scipy import signal
 
 def load_rwth_phoenix(datapath):
     dirname = str(datapath) + os.sep
@@ -100,11 +102,27 @@ def get_mag_on_pose(mag, pose):
 
     return smag, smag_r, smag_l
 
+def make_signal(sig, sflag):
+    x = np.array(sig)
+    x = x.reshape(1, -1)[0]
+    if sflag:
+        x_sig = signal.savgol_filter(x, 25, 5)
+    else:
+        x_sig = x
+
+    return x_sig
+
 def parse_args():
     description = "Program to produce hand, body, and face landmarks"
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("-p", "--path", help="path to video dir",
                         dest="path", type=str, required=True)
+    parser.add_argument("-g", "--groundtruth", help="path to groundtruth file",
+                        dest="gtpath", type=str, required=False)
+    parser.add_argument("-s", "--smooth", help="set smooth signal",
+                        dest="smooth", action="store_true")
+    parser.add_argument("-f", "--figureplot", help="set to show figure plot",
+                        dest="figureplot", action="store_true")
 
     return parser.parse_args()
 
@@ -113,6 +131,16 @@ def main():
     datapath = Path(args.path)
     images = load_rwth_phoenix(datapath)
     print(f"Load {len(images)} images... OK")
+
+    videoname = datapath.parts[-2]
+    print(f"video: {videoname}")
+
+    if args.gtpath is not None:
+        gtdata = load_gt(args.gtpath, videoname)
+        print(f"Load {len(gtdata)} groundtruth data... OK")
+    else:
+        gtdata = []
+        print(f"No groundtruth data")
 
     # create mediapipe 
     mp_hands = mp.solutions.hands
@@ -166,13 +194,25 @@ def main():
         #     cv.destroyAllWindows()
         #     break
 
-    px = list(range(len(summag)))
-    fig, ax = plt.subplots()
-    ax.plot(px, summag)
-    ax.plot(px, summag_r)
-    ax.plot(px, summag_l)
+    x_summag = make_signal(summag, args.smooth)
+    x_summag_r = make_signal(summag_r, args.smooth)
+    x_summag_l = make_signal(summag_l, args.smooth)
 
-    plt.show()
+    if args.figureplot:
+        px = list(range(len(summag)))
+        fig, ax = plt.subplots()
+        ax.plot(px, x_summag)
+        ax.plot(px, x_summag_r)
+        ax.plot(px, x_summag_l)
+        if gtdata != []:
+            for frm, gt in gtdata:
+                if gt == 1:
+                    plt.axvline(x=frm, color="0.8", linestyle=":")
+        plt.show()
+    else:
+        print(f"x_summag: {x_summag}")
+        print(f"x_summag_r: {x_summag_r}")
+        print(f"x_summag_l: {x_summag_l}")
 
 if __name__ == "__main__":
     main()
