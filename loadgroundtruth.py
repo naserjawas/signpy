@@ -8,6 +8,8 @@ author: naserjawas
 date: 30 December 2024
 """
 
+import os
+
 def load_gt(filename, videofile):
     with open(filename, "r") as f:
         lines = f.readlines()
@@ -17,7 +19,7 @@ def load_gt(filename, videofile):
     for line in lines:
         frame, sign = line.split(" ")
         signid = int(sign)
-        framedata = frame.split("/")
+        framedata = frame.split(os.sep)
 
         # for the selected videofile
         if framedata[-3] == videofile:
