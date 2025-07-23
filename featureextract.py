@@ -40,6 +40,7 @@ date: 25 November 2024
 
 import os
 import glob
+import json
 import argparse
 import cv2 as cv
 import mediapipe as mp
@@ -145,8 +146,11 @@ def parse_args():
                         dest="smooth", action="store_true")
     parser.add_argument("-f", "--figureplot", help="set to show figure plot",
                         dest="figureplot", action="store_true")
+    parser.add_argument("-d", "--outputdir", help="path to output directory",
+                        dest="outputdir", type=str, required=False)
 
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -156,6 +160,12 @@ def main():
 
     videoname = datapath.parts[-2]
     print(f"video: {videoname}")
+
+    if args.outputdir is not None:
+        outpath = Path(args.outputdir)
+        if not outpath.exists():
+            print(f"ouputdir: {outpath.resolve()} does not exists")
+            exit()
 
     if args.gtpath is not None:
         gtdata = load_gt(args.gtpath, videoname)
@@ -235,6 +245,17 @@ def main():
         print(f"x_summag: {x_summag}")
         print(f"x_summag_r: {x_summag_r}")
         print(f"x_summag_l: {x_summag_l}")
+
+    if args.outputdir is not None:
+        filename = str(outpath) + os.sep + videoname + ".json"
+        print(f"Saving to {filename}")
+        data = {
+                "summag": list(x_summag),
+                "summag_r": list(x_summag_r),
+                "summag_l": list(x_summag_l)
+        }
+        with open(filename, 'w') as f:
+            json.dump(data, f)
 
 if __name__ == "__main__":
     main()
