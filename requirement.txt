@@ -1,0 +1,33 @@
+absl-py==2.3.1
+attrs==25.3.0
+cffi==1.17.1
+contourpy @ file:///Users/runner/miniforge3/conda-bld/contourpy_1744743181596/work
+cycler @ file:///home/conda/feedstock_root/build_artifacts/cycler_1733332471406/work
+flatbuffers==25.2.10
+fonttools @ file:///Users/runner/miniforge3/conda-bld/fonttools_1752722766447/work
+jax==0.7.0
+jaxlib==0.7.0
+kiwisolver @ file:///Users/runner/miniforge3/conda-bld/kiwisolver_1751493931853/work
+matplotlib==3.10.3
+mediapipe==0.10.21
+ml_dtypes==0.5.1
+munkres==1.1.4
+numpy==1.26.4
+opencv-contrib-python==4.11.0.86
+opencv-python==4.12.0
+opencv-python-headless==4.12.0
+opt_einsum==3.4.0
+packaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1745345660/work
+pillow @ file:///Users/runner/miniforge3/conda-bld/pillow_1751482098407/work
+protobuf==4.25.8
+pycparser==2.22
+pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1743089729650/work
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_python-dateutil_1751104122/work
+scipy @ file:///Users/runner/miniforge3/conda-bld/scipy-split_1751147461761/work/dist/scipy-1.16.0-cp312-cp312-macosx_11_0_arm64.whl#sha256=6bc429ac30e89b19ef3ad6259fea676e60da767a97554912b22ff3ef6676877d
+sentencepiece==0.2.0
+setuptools==80.9.0
+six @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_six_1753199211/work
+sounddevice==0.5.2
+tornado @ file:///Users/runner/miniforge3/conda-bld/tornado_1748003367141/work
+unicodedata2 @ file:///Users/runner/miniforge3/conda-bld/unicodedata2_1736692573761/work
+wheel==0.45.1
