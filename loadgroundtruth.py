@@ -35,14 +35,3 @@ def load_gt(filename, videofile):
                 gtdata.append([fnid, 0])
 
     return gtdata
-
-
-def main():
-    gtfilename = "../../../PhDResearch/workingdir/dataset/RWTHPHOENIXWeather2014/phoenix2014-release/phoenix-2014-multisigner/annotations/automatic/train.alignment"
-    videofile = "01April_2010_Thursday_heute_default-0"
-    gtdata = load_gt(gtfilename, videofile)
-    print(gtdata)
-
-
-if __name__ == "__main__":
-    main()
