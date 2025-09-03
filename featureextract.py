@@ -229,6 +229,8 @@ def main():
     x_summag = make_signal(summag, args.smooth)
     x_summag_r = make_signal(summag_r, args.smooth)
     x_summag_l = make_signal(summag_l, args.smooth)
+    x_frmnum = [gt[0] for gt in gtdata]
+    x_gtdata = [gt[1] for gt in gtdata]
 
     if args.figureplot:
         px = list(range(len(summag)))
@@ -236,15 +238,15 @@ def main():
         ax.plot(px, x_summag)
         ax.plot(px, x_summag_r)
         ax.plot(px, x_summag_l)
-        if gtdata != []:
-            for frm, gt in gtdata:
-                if gt == 1:
-                    plt.axvline(x=frm, color="0.8", linestyle=":")
+        for frm, gt in gtdata:
+            if gt == 1:
+                plt.axvline(x=frm, color="0.8", linestyle=":")
         plt.show()
     else:
         print(f"x_summag: {x_summag}")
         print(f"x_summag_r: {x_summag_r}")
         print(f"x_summag_l: {x_summag_l}")
+        print(f"x_gtdata: {x_gtdata}")
 
     if args.outputdir is not None:
         filename = str(outpath) + os.sep + videoname + ".json"
@@ -252,7 +254,9 @@ def main():
         data = {
                 "summag": x_summag.tolist(),
                 "summag_r": x_summag_r.tolist(),
-                "summag_l": x_summag_l.tolist()
+                "summag_l": x_summag_l.tolist(),
+                "frmnum": x_frmnum,
+                "gtdata": x_gtdata
         }
         with open(filename, 'w') as f:
             json.dump(data, f)
