@@ -250,9 +250,9 @@ def main():
         filename = str(outpath) + os.sep + videoname + ".json"
         print(f"Saving to {filename}")
         data = {
-                "summag": list(x_summag),
-                "summag_r": list(x_summag_r),
-                "summag_l": list(x_summag_l)
+                "summag": x_summag.tolist(),
+                "summag_r": x_summag_r.tolist(),
+                "summag_l": x_summag_l.tolist()
         }
         with open(filename, 'w') as f:
             json.dump(data, f)
