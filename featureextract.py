@@ -232,15 +232,17 @@ def main():
     x_frmnum = [gt[0] for gt in gtdata]
     x_gtdata = [gt[1] for gt in gtdata]
 
+    # create figure
+    px = list(range(len(summag)))
+    fig, ax = plt.subplots()
+    ax.plot(px, x_summag)
+    ax.plot(px, x_summag_r)
+    ax.plot(px, x_summag_l)
+    for frm, gt in gtdata:
+        if gt == 1:
+            plt.axvline(x=frm, color="0.8", linestyle=":")
+
     if args.figureplot:
-        px = list(range(len(summag)))
-        fig, ax = plt.subplots()
-        ax.plot(px, x_summag)
-        ax.plot(px, x_summag_r)
-        ax.plot(px, x_summag_l)
-        for frm, gt in gtdata:
-            if gt == 1:
-                plt.axvline(x=frm, color="0.8", linestyle=":")
         plt.show()
     else:
         print(f"x_summag: {x_summag}")
@@ -249,8 +251,10 @@ def main():
         print(f"x_gtdata: {x_gtdata}")
 
     if args.outputdir is not None:
-        filename = str(outpath) + os.sep + videoname + ".json"
-        print(f"Saving to {filename}")
+        filename = str(outpath) + os.sep + videoname
+        filenamejson = filename + ".json"
+        filenamejpeg = filename + ".jpeg"
+        print(f"Saving to {filenamejson}")
         data = {
                 "summag": x_summag.tolist(),
                 "summag_r": x_summag_r.tolist(),
@@ -260,6 +264,8 @@ def main():
         }
         with open(filename, 'w') as f:
             json.dump(data, f)
+        print(f"Saving to {filenamejpeg}")
+        plt.savefig(filenamejpeg)
 
 if __name__ == "__main__":
     main()
