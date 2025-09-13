@@ -85,11 +85,24 @@ def detect_pose(body, img):
     else:
         return None
 
+def check_range(orig, maxm):
+    newvalue = 0
+    if orig < 0:
+        newvalue = 0
+    elif orig >= maxm:
+        newvalue = maxm-1
+    else:
+        newvalue = orig
+
+    return newvalue
+
 def draw_landmark(image, landmark):
     ih, iw, _ = image.shape
     for l in landmark:
         y = int(l.y * ih)
         x = int(l.x * iw)
+        y = check_range(y, ih)
+        x = check_range(x, iw)
         cv.circle(image, (x, y), 1, (255, 255, 255), -1)
 
     return image
@@ -99,6 +112,8 @@ def draw_pose(image, pose):
     for i in range(25):
         y = int(pose.pose_landmarks.landmark[i].y * ih)
         x = int(pose.pose_landmarks.landmark[i].x * iw)
+        y = check_range(y, ih)
+        x = check_range(x, iw)
         cv.circle(image, (x, y), 1, (255, 255, 255), -1)
 
     return image
@@ -117,6 +132,8 @@ def get_mag_on_pose(mag, pose):
     for i in range(15, 23):
         y = int(pose.pose_landmarks.landmark[i].y * ih)
         x = int(pose.pose_landmarks.landmark[i].x * iw)
+        y = check_range(y, ih)
+        x = check_range(x, iw)
         smag += mag[y][x]
         if i % 2 == 0:
             smag_r += mag[y][x]
