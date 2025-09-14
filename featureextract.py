@@ -289,7 +289,7 @@ def main():
                 "frmnum": x_frmnum,
                 "gtdata": x_gtdata
         }
-        with open(filename, 'w') as f:
+        with open(filenamejson, 'w') as f:
             json.dump(data, f)
         print(f"Saving to {filenamejpeg}")
         plt.savefig(filenamejpeg)
