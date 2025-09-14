@@ -67,8 +67,7 @@ def load_rwth_phoenix(datapath):
 
     return images
 
-def detect_hands(body, img):
-    hands = body.Hands(static_image_mode=True)
+def detect_hands(hands, img):
     result = hands.process(img)
 
     if result.multi_hand_landmarks:
@@ -76,8 +75,7 @@ def detect_hands(body, img):
     else:
         return None
 
-def detect_face(body, img):
-    face = body.FaceMesh(static_image_mode=True, refine_landmarks=True)
+def detect_face(face, img):
     result = face.process(img)
 
     if result.multi_face_landmarks:
@@ -85,8 +83,7 @@ def detect_face(body, img):
     else:
         return None
 
-def detect_pose(body, img):
-    pose = body.Pose(static_image_mode=True, model_complexity=2, enable_segmentation=True)
+def detect_pose(pose, img):
     result = pose.process(img)
 
     if result.pose_landmarks:
@@ -205,6 +202,10 @@ def main():
     mp_face = mp.solutions.face_mesh
     mp_pose = mp.solutions.pose
 
+    hand_detector = mp_hands.Hands(static_image_mode=True)
+    face_detector = mp_face.FaceMesh(static_image_mode=True, refine_landmarks=True)
+    pose_detector = mp_pose.Pose(static_image_mode=True, model_complexity=2, enable_segmentation=True)
+
     # create RLOF
     of = cv.optflow.createOptFlow_DenseRLOF()
 
@@ -221,19 +222,19 @@ def main():
         else:
             prev_i = images[fid-1].copy()
 
-        # hands = detect_hands(mp_hands, image2)
+        # hands = detect_hands(hand_detector, image2)
         # if hands is not None:
         #     for hand_landmarks in hands.multi_hand_landmarks:
         #         image = draw_landmark(image, hand_landmarks.landmark)
 
-        # face = detect_face(mp_face, image2)
+        # face = detect_face(face_detector, image2)
         # if face is not None:
         #     for face_mesh in face.multi_face_landmarks:
         #         image = draw_landmark(image, face_mesh.landmark)
 
         mag, ang = calc_optical_flow(prev_i, next_i, of)
 
-        pose = detect_pose(mp_pose, image2)
+        pose = detect_pose(pose_detector, image2)
 
         if pose is not None:
             image = draw_pose(image, pose)
