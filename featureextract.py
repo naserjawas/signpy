@@ -289,19 +289,10 @@ def main():
 
     if args.outputdir is not None:
         filename = str(outpath) + os.sep + videoname
-        filenamejson = filename + ".json"
-        filenamejpeg = filename + ".jpeg"
         filenamenpz = filename + ".npz"
-        print(f"Saving to {filenamejson}")
-        data = {
-                "summag": x_summag.tolist(),
-                "summag_r": x_summag_r.tolist(),
-                "summag_l": x_summag_l.tolist(),
-                "lspose_r": lspose_r,
-                "lspose_l": lspose_l,
-                "frmnum": x_frmnum,
-                "gtdata": x_gtdata
-        }
+        # filenamejson = filename + ".json"
+        # filenamejpeg = filename + ".jpeg"
+
         print(f"Saving to {filenamenpz}")
         np.savez(
             filenamenpz,
@@ -313,10 +304,22 @@ def main():
             frmnum=np.array(x_frmnum),
             gtdata=np.array(x_gtdata)
         )
-        with open(filenamejson, 'w') as f:
-            json.dump(data, f)
-        print(f"Saving to {filenamejpeg}")
-        plt.savefig(filenamejpeg)
+
+        # print(f"Saving to {filenamejson}")
+        # data = {
+        #         "summag": x_summag.tolist(),
+        #         "summag_r": x_summag_r.tolist(),
+        #         "summag_l": x_summag_l.tolist(),
+        #         "lspose_r": lspose_r,
+        #         "lspose_l": lspose_l,
+        #         "frmnum": x_frmnum,
+        #         "gtdata": x_gtdata
+        # }
+        # with open(filenamejson, 'w') as f:
+        #     json.dump(data, f)
+
+        # print(f"Saving to {filenamejpeg}")
+        # plt.savefig(filenamejpeg)
 
 if __name__ == "__main__":
     main()
