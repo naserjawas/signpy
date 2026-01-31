@@ -40,13 +40,13 @@ date: 25 November 2024
 
 import os
 # Limit CPU threads BEFORE importing mediapipe or tensorflow
-os.environ["OMP_NUM_THREADS"] = "2"
-os.environ["TF_NUM_INTRAOP_THREADS"] = "2"
-os.environ["TF_NUM_INTEROP_THREADS"] = "2"
+os.environ["OMP_NUM_THREADS"] = "8"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "8"
+os.environ["TF_NUM_INTEROP_THREADS"] = "8"
 
 # Optional: make NumPy respect the same thread limit
-os.environ["MKL_NUM_THREADS"] = "2"
-os.environ["NUMEXPR_NUM_THREADS"] = "2"
+os.environ["MKL_NUM_THREADS"] = "8"
+os.environ["NUMEXPR_NUM_THREADS"] = "8"
 
 import glob
 import json
