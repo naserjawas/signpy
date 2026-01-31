@@ -39,7 +39,7 @@ date: 25 November 2024
 """
 
 import os
-# ✅ Limit CPU threads BEFORE importing mediapipe or tensorflow
+# Limit CPU threads BEFORE importing mediapipe or tensorflow
 os.environ["OMP_NUM_THREADS"] = "2"
 os.environ["TF_NUM_INTRAOP_THREADS"] = "2"
 os.environ["TF_NUM_INTEROP_THREADS"] = "2"
@@ -135,6 +135,8 @@ def get_mag_on_pose(mag, pose):
     smag = 0
     smag_r = 0
     smag_l = 0
+    pose_r = []
+    pose_l = []
     for i in range(15, 23):
         y = int(pose.pose_landmarks.landmark[i].y * ih)
         x = int(pose.pose_landmarks.landmark[i].x * iw)
@@ -143,10 +145,12 @@ def get_mag_on_pose(mag, pose):
         smag += mag[y][x]
         if i % 2 == 0:
             smag_r += mag[y][x]
+            pose_r.append((x,y))
         else:
             smag_l += mag[y][x]
+            pose_l.append((x,y))
 
-    return smag, smag_r, smag_l
+    return smag, smag_r, smag_l, pose_r, pose_l
 
 def make_signal(sig, sflag):
     x = np.array(sig)
@@ -212,6 +216,8 @@ def main():
     summag = []
     summag_r = []
     summag_l = []
+    lspose_r = []
+    lspose_l = []
     fid = -1
     for image in images:
         fid += 1
@@ -238,13 +244,15 @@ def main():
 
         if pose is not None:
             image = draw_pose(image, pose)
-            smag, smag_r, smag_l = get_mag_on_pose(mag, pose)
+            smag, smag_r, smag_l, pose_r, pose_l  = get_mag_on_pose(mag, pose)
         else:
-            smag, smag_r, smag_l = 0, 0, 0
+            smag, smag_r, smag_l, pose_r, pose_l = 0, 0, 0, [], []
 
         summag.append(smag)
         summag_r.append(smag_r)
         summag_l.append(smag_l)
+        lspose_r.append(pose_r)
+        lspose_l.append(pose_l)
 
         # cv.imshow("image", image)
         # cv.imshow("mag", mag)
@@ -275,20 +283,36 @@ def main():
         print(f"x_summag: {x_summag}")
         print(f"x_summag_r: {x_summag_r}")
         print(f"x_summag_l: {x_summag_l}")
+        print(f"lspose_r: {lspose_r}")
+        print(f"lspose_l: {lspose_l}")
         print(f"x_gtdata: {x_gtdata}")
 
     if args.outputdir is not None:
         filename = str(outpath) + os.sep + videoname
         filenamejson = filename + ".json"
         filenamejpeg = filename + ".jpeg"
+        filenamenpz = filename + ".npz"
         print(f"Saving to {filenamejson}")
         data = {
                 "summag": x_summag.tolist(),
                 "summag_r": x_summag_r.tolist(),
                 "summag_l": x_summag_l.tolist(),
+                "lspose_r": lspose_r,
+                "lspose_l": lspose_l,
                 "frmnum": x_frmnum,
                 "gtdata": x_gtdata
         }
+        print(f"Saving to {filenamenpz}")
+        np.savez(
+            filenamenpz,
+            summag=x_summag,
+            summag_r=x_summag_r,
+            summag_l=x_summag_l,
+            lspose_r=np.array(lspose_r),
+            lspose_l=np.array(lspose_l),
+            frmnum=np.array(x_frmnum),
+            gtdata=np.array(x_gtdata)
+        )
         with open(filenamejson, 'w') as f:
             json.dump(data, f)
         print(f"Saving to {filenamejpeg}")
