@@ -14,10 +14,11 @@ Mediapipe documentation can be found here:
 https://github.com/google-ai-edge/mediapipe/tree/master/docs/solutions
 
 usage:
-    python featureextract.py --path <path to video directory> 
+    python featureextract.py --path <path to video directory>
                              --groundtruth <path ground truth file>
                              --smooth
                              --figureplot
+                             ---outputdir <path to result directory>
 arguments:
     --path (required):
         Set to the path of RWTH-PHOENIX-Weather video directory.
@@ -33,6 +34,9 @@ arguments:
 
     --figureplot (optional)
         Set if a figure of signal ploting is needed.
+
+    --groundtruth (optional):
+        Set to the path of result directory.
 
 author: naserjawas
 date: 25 November 2024
