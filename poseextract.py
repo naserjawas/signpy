@@ -118,11 +118,11 @@ def main():
         else:
             pose_sequence.append(np.zeros((33, 4), dtype=np.float32))
 
-        cv.imshow("image", image)
-        k = cv.waitKey(0) & 0xFF
-        if k == ord('q'):
-            cv.destroyAllWindows()
-            break
+        # cv.imshow("image", image)
+        # k = cv.waitKey(0) & 0xFF
+        # if k == ord('q'):
+        #     cv.destroyAllWindows()
+        #     break
 
     x_pose_sequence = np.stack(pose_sequence)
     x_frmnum = [gt[0] for gt in gtdata]
