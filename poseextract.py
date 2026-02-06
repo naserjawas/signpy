@@ -39,85 +39,16 @@ os.environ["TF_NUM_INTEROP_THREADS"] = "8"
 os.environ["MKL_NUM_THREADS"] = "8"
 os.environ["NUMEXPR_NUM_THREADS"] = "8"
 
-import glob
 import argparse
 import cv2 as cv
 import mediapipe as mp
 import numpy as np
 from pathlib import Path
-from loadgroundtruth import load_gt
-
-def load_rwth_phoenix(datapath):
-    dirname = str(datapath) + os.sep
-    filenames = sorted(glob.glob(dirname + "*-0.png"))
-    images = [cv.imread(filename, cv.IMREAD_COLOR)
-              for filename in filenames]
-
-    return images
-
-def detect_hands(hands, img):
-    result = hands.process(img)
-
-    if result.multi_hand_landmarks:
-        return result
-    else:
-        return None
-
-def detect_face(face, img):
-    result = face.process(img)
-
-    if result.multi_face_landmarks:
-        return result
-    else:
-        return None
-
-def detect_pose(pose, img):
-    result = pose.process(img)
-
-    if result.pose_landmarks:
-        return result
-    else:
-        return None
-
-def check_range(orig, maxm):
-    newvalue = 0
-    if orig < 0:
-        newvalue = 0
-    elif orig >= maxm:
-        newvalue = maxm-1
-    else:
-        newvalue = orig
-
-    return newvalue
-
-def draw_landmark(image, landmark):
-    ih, iw, _ = image.shape
-    for l in landmark:
-        y = int(l.y * ih)
-        x = int(l.x * iw)
-        y = check_range(y, ih)
-        x = check_range(x, iw)
-        cv.circle(image, (x, y), 1, (255, 255, 255), -1)
-
-    return image
-
-def draw_pose(image, pose):
-    ih, iw, _ = image.shape
-    for i in range(25):
-        y = int(pose.pose_landmarks.landmark[i].y * ih)
-        x = int(pose.pose_landmarks.landmark[i].x * iw)
-        y = check_range(y, ih)
-        x = check_range(x, iw)
-        cv.circle(image, (x, y), 1, (255, 255, 255), -1)
-
-    return image
-
-def pose_to_numpy(pose):
-    x = np.array([
-                    [lm.x, lm.y, lm.z, lm.visibility]
-                    for lm in pose.pose_landmarks.landmark
-                 ], dtype=np.float32)
-    return x
+from support import load_gt, load_rwth_phoenix
+from support import detect_hands, detect_face, detect_pose
+from support import check_range
+from support import draw_pose, draw_landmark
+from support import pose_to_numpy
 
 def parse_args():
     description = "Program to produce hand, body, and face landmarks"
