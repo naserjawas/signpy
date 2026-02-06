@@ -58,7 +58,6 @@ import mediapipe as mp
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from scipy import signal
 from support import load_gt, load_rwth_phoenix
 from support import detect_hands, detect_face, detect_pose
 from support import check_range
