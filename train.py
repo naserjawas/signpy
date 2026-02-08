@@ -35,6 +35,16 @@ def construct_segment(listgtdata):
 
     return frmsegment
 
+def calculate_delta(signal):
+    delta = []
+    for i, s in enumerate(signal):
+        if i == 0:
+            delta.append(0)
+        else:
+            delta.append(s - signal[i-1])
+
+    return np.array(delta, dtype=np.float32)
+
 def temporal_smoothness_loss(pred):
     return torch.mean(torch.abs(pred[:, :, 1:] - pred[:, :, :-1]))
 
@@ -77,6 +87,7 @@ if __name__ == '__main__':
         data = np.load(npzf)
         filename = npzf.split(os.sep)[-1]
         vidname = filename[:-4]
+
         # summag = data['summag']
         summag_r = data['summag_r']
         summag_l = data['summag_l']
@@ -85,9 +96,11 @@ if __name__ == '__main__':
         # frmnum = data['frmnum']
         gtdata = data['gtdata']
 
+        delta_r = calculate_delta(summag_r)
+        delta_l = calculate_delta(summag_l)
         frmsegment = construct_segment(gtdata)
 
-        features = np.stack((summag_r, summag_l), axis=1)
+        features = np.stack([summag_r, summag_l, delta_r, delta_l], axis=1)
         labels = np.array(frmsegment, dtype=np.uint8)
 
         features = (features - features.mean(axis=0)) / (features.std(axis=0) + 1e-6)
@@ -117,7 +130,7 @@ if __name__ == '__main__':
             num_stages=3,
             num_layers=5,
             num_f_maps=64,
-            in_dim=2,
+            in_dim=4,
             num_classes=2).to(device)
     weights = torch.tensor([1.0, 30.0]).to(device)
     criterion = nn.CrossEntropyLoss(weight=weights)
@@ -130,7 +143,9 @@ if __name__ == '__main__':
         for features, labels in train_loader:
             features = features.to(device)
             labels = labels.to(device)
+
             features = features.permute(0, 2, 1)
+
             optimiser.zero_grad()
             outputs = model(features)
 
