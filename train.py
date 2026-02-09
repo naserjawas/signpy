@@ -11,11 +11,39 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import f1_score
 
 
-def load_npz_files(datapath):
+def load_dataset(datapath):
     dirname = str(datapath) + os.sep
     filenames = sorted(glob.glob(dirname + "*.npz"))
 
-    return filenames
+    dataset = {}
+    for npzf in npzfiles:
+        data = np.load(npzf)
+        filename = npzf.split(os.sep)[-1]
+        vidname = filename[:-4]
+
+        # summag = data['summag']
+        summag_r = data['summag_r']
+        summag_l = data['summag_l']
+        # lspose_r = data['lspose_r']
+        # lspose_l = data['lspose_l']
+        # frmnum = data['frmnum']
+        gtdata = data['gtdata']
+
+        delta_r = calculate_delta(summag_r)
+        delta_l = calculate_delta(summag_l)
+        frmsegment = construct_segment(gtdata)
+
+        features = np.stack([summag_r, summag_l, delta_r, delta_l], axis=1)
+        labels = np.array(frmsegment, dtype=np.uint8)
+
+        features = (features - features.mean(axis=0)) / (features.std(axis=0) + 1e-6)
+
+        contents = {}
+        contents["features"] = features
+        contents["labels"] = labels
+        dataset[vidname] = contents
+
+    return dataset
 
 def construct_segment(listgtdata):
     frmsegment = []
@@ -36,14 +64,10 @@ def construct_segment(listgtdata):
     return frmsegment
 
 def calculate_delta(signal):
-    delta = []
-    for i, s in enumerate(signal):
-        if i == 0:
-            delta.append(0)
-        else:
-            delta.append(s - signal[i-1])
+    delta = signal[1:] - signal[:-1]
+    delta = np.insert(delta, 0, 0)
 
-    return np.array(delta, dtype=np.float32)
+    return delta
 
 def temporal_smoothness_loss(pred):
     return torch.mean(torch.abs(pred[:, :, 1:] - pred[:, :, :-1]))
@@ -79,36 +103,8 @@ def boundary_f1_score(gt_labels, pred_labels, tolerance=5):
 
 if __name__ == '__main__':
     datapath = Path("../results/")
-    npzfiles = load_npz_files(datapath)
+    dataset = load_dataset(datapath)
 
-    # construct the dataset
-    dataset = {}
-    for npzf in npzfiles:
-        data = np.load(npzf)
-        filename = npzf.split(os.sep)[-1]
-        vidname = filename[:-4]
-
-        # summag = data['summag']
-        summag_r = data['summag_r']
-        summag_l = data['summag_l']
-        # lspose_r = data['lspose_r']
-        # lspose_l = data['lspose_l']
-        # frmnum = data['frmnum']
-        gtdata = data['gtdata']
-
-        delta_r = calculate_delta(summag_r)
-        delta_l = calculate_delta(summag_l)
-        frmsegment = construct_segment(gtdata)
-
-        features = np.stack([summag_r, summag_l, delta_r, delta_l], axis=1)
-        labels = np.array(frmsegment, dtype=np.uint8)
-
-        features = (features - features.mean(axis=0)) / (features.std(axis=0) + 1e-6)
-
-        contents = {}
-        contents["features"] = features
-        contents["labels"] = labels
-        dataset[vidname] = contents
 
     # split to train and test
     video_names = list(dataset.keys())
