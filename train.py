@@ -2,6 +2,7 @@ import os
 import glob
 import random
 import torch
+import pickle
 import torch.nn as nn
 import numpy as np
 from pathlib import Path
@@ -16,9 +17,9 @@ def load_dataset(datapath):
     filenames = sorted(glob.glob(dirname + "*.npz"))
 
     dataset = {}
-    for npzf in npzfiles:
-        data = np.load(npzf)
-        filename = npzf.split(os.sep)[-1]
+    for npzfile in filenames:
+        data = np.load(npzfile)
+        filename = npzfile.split(os.sep)[-1]
         vidname = filename[:-4]
 
         # summag = data['summag']
@@ -102,9 +103,17 @@ def boundary_f1_score(gt_labels, pred_labels, tolerance=5):
 
 
 if __name__ == '__main__':
-    datapath = Path("../results/")
-    dataset = load_dataset(datapath)
+    datapath = Path('../results/')
+    datafile = './dataset.pkl'
+    reload = False
 
+    if reload or not os.path.exists(datafile):
+        dataset = load_dataset(datapath)
+        with open(datafile, 'wb') as f:
+            pickle.dump(dataset, f)
+    else:
+        with open(datafile, 'rb') as f:
+            dataset = pickle.load(f)
 
     # split to train and test
     video_names = list(dataset.keys())
