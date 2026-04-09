@@ -66,9 +66,10 @@ def normalise_hand(hand, wrist):
     return hand - wrist
 
 def compute_velocity(sequence):
-    velocity = np.diff(sequence, axis=0)
-    zero_frame = np.zeros_like(sequence[:1])
-    velocity = np.concatenate([zero_frame, velocity], axis=0)
+    # velocity = np.diff(sequence, axis=0)
+    # zero_frame = np.zeros_like(sequence[:1])
+    # velocity = np.concatenate([zero_frame, velocity], axis=0)
+    velocity = np.diff(sequence, axis=0, prepend=sequence[0:1])
     return velocity
 
 
