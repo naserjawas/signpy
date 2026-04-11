@@ -18,12 +18,12 @@ arguments:
 
 import os
 # Limit CPU threads BEFORE importing mediapipe or tensorflow
-# os.environ["OMP_NUM_THREADS"] = "8"                                                                    │~
-# os.environ["TF_NUM_INTRAOP_THREADS"] = "8"                                                             │~
-# os.environ["TF_NUM_INTEROP_THREADS"] = "8"                                                             │~
+# os.environ["OMP_NUM_THREADS"] = "8"
+# os.environ["TF_NUM_INTRAOP_THREADS"] = "8"
+# os.environ["TF_NUM_INTEROP_THREADS"] = "8"
 
-# Optional: make NumPy respect the same thread limit                                                   │~
-# os.environ["MKL_NUM_THREADS"] = "8"                                                                    │~
+# Optional: make NumPy respect the same thread limit
+# os.environ["MKL_NUM_THREADS"] = "8"
 # os.environ["NUMEXPR_NUM_THREADS"] = "8"
 
 import argparse
@@ -72,6 +72,61 @@ def compute_velocity(sequence):
     velocity = np.diff(sequence, axis=0, prepend=sequence[0:1])
     return velocity
 
+def compute_direction(velocity):
+    norm = np.linalg.norm(velocity, axis=-1, keepdims=True) + 1e-6
+    direction = velocity / norm
+    return direction
+
+def compute_direction_change(direction):
+    delta_dir = np.diff(direction, axis=0, prepend=direction[0:1])
+    return delta_dir
+
+def compute_direction_angle(velocity):
+    v1 = velocity[:-1]
+    v2 = velocity[1:]
+
+    dot = np.sum(v1 * v2, axis=-1)
+    norm1 = np.linalg.norm(v1, axis=-1)
+    norm2 = np.linalg.norm(v2, axis=-1)
+
+    cos_theta = dot / (norm1 * norm2 + 1e-6)
+    cos_theta = np.clip(cos_theta, -1.0, 1.0)
+
+    angle = np.arccos(cos_theta)
+
+    angle = np.concatenate([np.zeros_like(angle[:1]), angle], axis=0)
+    return angle
+
+def compute_hand_orientation(hand):
+    wrist = hand[:, 0, :]
+    index = hand[:, 8, :]
+
+    orientation = index - wrist
+    return orientation
+
+def normalise_vector(v):
+    norm = np.linalg.norm(v, axis=-1, keepdims=True) + 1e-6
+    v_norm = v / norm
+    return v_norm
+
+def compute_orientation_change(orientation):
+    orientation = normalise_vector(orientation)
+
+    v1 = orientation[:-1]
+    v2 = orientation[1:]
+
+    dot = np.sum(v1 * v2, axis=-1)
+    norm1 = np.linalg.norm(v1, axis=-1)
+    norm2 = np.linalg.norm(v2, axis=-1)
+
+    cos_theta = dot / (norm1 * norm2 + 1e-6)
+    cos_theta = np.clip(cos_theta, -1.0, 1.0)
+
+    angle = np.arccos(cos_theta)
+
+    angle = np.concatenate([np.zeros_like(angle[:1]), angle], axis=0)
+    return angle
+
 
 def main():
     args = parse_args()
@@ -79,7 +134,7 @@ def main():
 
     dirname = str(datapath) + os.sep
     filenames = sorted(glob.glob(dirname + "*-0.png"))
-    images = [cv.imread(filename, cv.IMREAD_COLOR_RGB)
+    images = [cv.imread(filename, cv.IMREAD_COLOR)
               for filename in filenames]
     print(f"Load {len(images)} images... OK")
 
@@ -93,6 +148,7 @@ def main():
             exit()
 
     mp_holistic = mp.solutions.holistic
+    mp_drawing = mp.solutions.drawing_utils
 
     pose_seq = []
     face_seq = []
@@ -105,7 +161,7 @@ def main():
         refine_face_landmarks=True
     ) as holistic:
         for image in images:
-            rgb = image.copy()
+            rgb = cv.cvtColor(image, cv.COLOR_BGR2RGB)
             results = holistic.process(rgb)
 
             pose = landmarks_to_array(results.pose_landmarks, 33)
@@ -133,6 +189,18 @@ def main():
         np.concatenate([left_hand_seq, right_hand_seq], axis=1)
     )
 
+    direction_pose = compute_direction(velocity_pose)
+    direction_hands = compute_direction(velocity_hands)
+
+    direction_angle_pose = compute_direction_angle(velocity_pose)
+    direction_angle_hands = compute_direction_angle(velocity_hands)
+
+    left_orientation = compute_hand_orientation(left_hand_seq)
+    right_orientation = compute_hand_orientation(right_hand_seq)
+
+    left_orient_change = compute_orientation_change(left_orientation)
+    right_orient_change = compute_orientation_change(right_orientation)
+
     if args.outputdir is not None:
         filename = str(outpath) + os.sep + videoname
     else:
@@ -145,8 +213,21 @@ def main():
         face=face_seq,
         left_hand=left_hand_seq,
         right_hand=right_hand_seq,
+
         velocity_pose=velocity_pose,
-        velocity_hands=velocity_hands
+        velocity_hands=velocity_hands,
+
+        direction_pose=direction_pose,
+        direction_hands=direction_hands,
+
+        direction_angle_pose=direction_angle_pose,
+        direction_angle_hands=direction_angle_hands,
+
+        left_orientation=left_orientation,
+        right_orientation=right_orientation,
+
+        left_orient_change=left_orient_change,
+        right_orient_change=right_orient_change
     )
     print(f"Saved to {output_path}")
 
