@@ -165,7 +165,7 @@ def main():
             results = holistic.process(rgb)
 
             pose = landmarks_to_array(results.pose_landmarks, 33)
-            face = landmarks_to_array(results.face_landmarks, 468)
+            face = landmarks_to_array(results.face_landmarks, 478)
             left_hand = landmarks_to_array(results.left_hand_landmarks, 21)
             right_hand = landmarks_to_array(results.right_hand_landmarks, 21)
 
