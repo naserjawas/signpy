@@ -14,6 +14,24 @@ arguments:
 
     --outputdir (optional):
         Set to the path of output directory.
+
+output file: *_feature.npz
+    fields:
+        output_path
+        pose                    : pose landmark (T, 33, 3)
+        face                    : face landmark (T, 478, 3)
+        left_hand               : left hand landmark (T, 21, 3)
+        right_hand              : right hand landmark (T, 21, 3)
+        velocity_pose           : velocity of every pose point.
+        velocity_hands          : velocity of every point from both hands.
+        direction_pose          : direction of every pose point.
+        direction_hands         : direction of every point from both hands.
+        direction_angle_pose    : direction in angle (pose)
+        direction_angle_hands   : direction in angle (hands)
+        left_orientation        : orientation of left hand
+        right_orientation       : orientation of right hand
+        left_orient_change      : change of orientation (left hand)
+        right_orient_change     : change of orientation (right hand)
 """
 
 import os
