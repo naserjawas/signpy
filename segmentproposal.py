@@ -48,15 +48,40 @@ def main():
     videoname = filename.split(os.sep)
     videoname = videoname[-1][:-13]
     if args.gtpath is not None:
+        # load data
         gtdata = load_gt(args.gtpath, videoname)
         print(f"Video name: {videoname}")
         print(f"Load {len(gtdata)} groundtruth data... OK")
+        # load class label
+        gtlabels = {}
+        classfile = args.gtpath[:-15]+"trainingClasses.txt"
+        with open(classfile, "r") as cf:
+            next(cf)
+            for line in cf:
+                value, key = line.strip().split()
+                gtlabels[int(key)] = value
+        print(f"Load {len(gtlabels)} gtlabels data... OK")
+        # load manual ground truth
+        gtmanual = []
+        manualfile = args.gtpath[:-25] + "manual/train.corpus.csv"
+        with open(manualfile, "r") as mf:
+            next(mf)
+            for line in mf:
+                linedata = line.split('|')
+                linevideo = linedata[0].strip()
+                if linevideo == videoname:
+                    gtmanual = linedata[-1].strip().split()
+        print(f"Load {len(gtmanual)} gtmanual data... OK")
+        print(gtmanual)
     else:
         gtdata = []
+        gtlabels = {}
+        gtmanual = []
         print(f"No groundtruth data")
 
     gtboundaries = []
     gtsign = []
+    gtgloss = []
     prvgt = 0
     for frm, gt in gtdata:
         if frm == 0:
@@ -70,6 +95,9 @@ def main():
                 gtboundaries.append(0)
         prvgt = gt
         gtsign.append(gt)
+        gtgloss.append(gtlabels[gt])
+    print(f"Load {len(gtgloss)} gtgloss data... OK")
+    print(gtgloss)
     # -------------------------------------------------------------------------
 
     velocity_hands = data["velocity_hands"]                 # (T, 42, 3)
