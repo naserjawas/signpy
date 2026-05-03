@@ -161,55 +161,22 @@ def main():
                           height=threshhold,
                           distance=10)
 
-    # # plot 1
+    # # plot
     # plt.figure()
-    # plt.plot(t, left_wrist_speed, label="Left Wrist Velocity")
-    # plt.plot(t, right_wrist_speed, label="Right Wrist Velocity")
-    # plt.legend()
-    # plt.title("Wrist Velocity Over Time")
+    # plt.plot(t, boundary_score)
+    # plt.plot(peaks, boundary_score[peaks], 'x')
+    # plt.title("Boundary Score")
     # plt.xlabel("Frame")
-    # plt.ylabel("Speed")
-    # # plot 2
-    # plt.figure()
-    # plt.plot(t, direction_change_mean)
-    # plt.plot(t, left_direction_change_mean)
-    # plt.plot(t, right_direction_change_mean)
-    # plt.title("Direction Change (Angle)")
-    # plt.xlabel("Frame")
-    # plt.ylabel("Radians")
-    # # plot 3
-    # plt.figure()
-    # plt.plot(t, left_orient_change, label="Left Orientation Change")
-    # plt.plot(t, right_orient_change, label="Right Orientation Change")
-    # plt.legend()
-    # plt.title("Orientation Change")
-    # plt.xlabel("Frame")
-    # plt.ylabel("Radians")
-    # # plot 4
-    # plt.figure()
-    # plt.plot(t, left_mag, label="Left Orientation Magnitude")
-    # plt.plot(t, right_mag, label="Right Orientation Magnitude")
-    # plt.legend()
-    # plt.title("Orientation Magnitude")
-    # plt.xlabel("Frame")
-    # plt.ylabel("Magnitude")
-    # plot 5
-    plt.figure()
-    plt.plot(t, boundary_score)
-    plt.plot(peaks, boundary_score[peaks], 'x')
-    plt.title("Boundary Score")
-    plt.xlabel("Frame")
-    plt.ylabel("Score")
-    # -------------------------------------------------------------------------
-    for i, gt in enumerate(gtboundaries):
-        # print(i, gt, gtsign[i])
-        if gt == 1:
-            plt.axvline(x=i, color="0.8", linestyle=":")
-        if gt == 2:
-            plt.axvline(x=i, color="0.2", linestyle=":")
-    # -------------------------------------------------------------------------
-
-    plt.show()
+    # plt.ylabel("Score")
+    # # -------------------------------------------------------------------------
+    # for i, gt in enumerate(gtboundaries):
+    #     # print(i, gt, gtsign[i])
+    #     if gt == 1:
+    #         plt.axvline(x=i, color="0.8", linestyle=":")
+    #     if gt == 2:
+    #         plt.axvline(x=i, color="0.2", linestyle=":")
+    # # -------------------------------------------------------------------------
+    # plt.show()
 
 if __name__ == "__main__":
     main()
