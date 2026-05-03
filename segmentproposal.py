@@ -5,12 +5,46 @@ This file is used to calculate segmentation proposal.
 
 usage:
     python segmentproposal.py --featurefile <path to npz file>
-
+                              --groundtruth <path to automatic alignment file>
+                              --outputdir <pat to result directory>
 argument:
     --featurefile (required):
         Set to the npz feature file path.
+
+    --groundtruth (optional):
+        Set to the ground truth (automatic alignment file)
+
+    --outputdir (optional):
+        Set to the path of output directory.
+
+output file: *_segprop.npz
+fields:
+    output_path
+    boundary_score      : score boundary per frame (T, )
+    speed_score         : hand speed score per frame (T, )
+    direction_score     : hand direction score per frame (T, )
+    orientation_score   : hand orientation score per frame (T, )
+
+    peaks               : peaks of boundary_score (P, )
+    threshold           : minimum boundary_score to consider.
+
+    gtboundaries        : boundary ground truth (0, 1, 2)
+    gtsign              : automatic sign id ground truth
+    gtgloss             : automatic sign gloss ground truth
+    gtmanual            : manual sign gloss ground truth
+
+    videoname           : videoname
 """
 import os
+# Limit CPU threads BEFORE importing mediapipe or tensorflow
+# os.environ["OMP_NUM_THREADS"] = "8"
+# os.environ["TF_NUM_INTRAOP_THREADS"] = "8"
+# os.environ["TF_NUM_INTEROP_THREADS"] = "8"
+
+# Optional: make NumPy respect the same thread limit
+# os.environ["MKL_NUM_THREADS"] = "8"
+# os.environ["NUMEXPR_NUM_THREADS"] = "8"
+
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,6 +52,7 @@ from scipy.signal import savgol_filter, find_peaks
 # -----------------------------------------------------------------------------
 from support import load_gt
 # -----------------------------------------------------------------------------
+from pathlib import Path
 
 def parse_args():
     description = "Program to calculate segmentation proposal."
@@ -28,6 +63,8 @@ def parse_args():
     parser.add_argument("-g", "--groundtruth", help="path to groundtruth file",
                         dest="gtpath", type=str, required=False)
     # -------------------------------------------------------------------------
+    parser.add_argument("-d", "--outputdir", help="path to output directory",
+                        dest="outputdir", type=str, required=False)
 
     return parser.parse_args()
 
@@ -72,7 +109,7 @@ def main():
                 if linevideo == videoname:
                     gtmanual = linedata[-1].strip().split()
         print(f"Load {len(gtmanual)} gtmanual data... OK")
-        print(gtmanual)
+        # print(gtmanual)
     else:
         gtdata = []
         gtlabels = {}
@@ -97,8 +134,14 @@ def main():
         gtsign.append(gt)
         gtgloss.append(gtlabels[gt])
     print(f"Load {len(gtgloss)} gtgloss data... OK")
-    print(gtgloss)
+    # print(gtgloss)
     # -------------------------------------------------------------------------
+
+    if args.outputdir is not None:
+        outpath = Path(args.outputdir)
+        if not outpath.exists():
+            print(f"outputdir: {outpath.resolve()} does not exists")
+            exit()
 
     velocity_hands = data["velocity_hands"]                 # (T, 42, 3)
     direction_angle_hands = data["direction_angle_hands"]   # (T, 42)
@@ -156,9 +199,9 @@ def main():
                       gamma * orientation_score)
 
     # peak detection
-    threshhold = np.percentile(boundary_score, 80)
+    threshold = np.percentile(boundary_score, 80)
     peaks, _ = find_peaks(boundary_score,
-                          height=threshhold,
+                          height=threshold,
                           distance=10)
 
     # # plot
@@ -177,6 +220,31 @@ def main():
     #         plt.axvline(x=i, color="0.2", linestyle=":")
     # # -------------------------------------------------------------------------
     # plt.show()
+
+    # save results
+    if args.outputdir is not None:
+        filename = str(outpath) + os.sep + videoname
+    else:
+        filename = videoname
+    output_path = filename + "_segprop.npz"
+
+    np.savez_compressed(
+        output_path,
+        boundary_score=boundary_score,
+        speed_score=speed_score,
+        direction_score=direction_score,
+        orientation_score=orientation_score,
+
+        peaks=peaks,
+        threshold=threshold,
+
+        gtboundaries=gtboundaries,
+        gtsign=gtsign,
+        gtgloss=gtgloss,
+        gtmanual=gtmanual,
+
+        videoname=videoname
+    )
 
 if __name__ == "__main__":
     main()
