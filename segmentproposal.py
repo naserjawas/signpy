@@ -245,6 +245,7 @@ def main():
 
         videoname=videoname
     )
+    print(f"Save {output_path} file... OK")
 
 if __name__ == "__main__":
     main()
