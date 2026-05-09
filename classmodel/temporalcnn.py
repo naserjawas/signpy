@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 class TemporalCNN(nn.Module):
@@ -19,12 +20,11 @@ class TemporalCNN(nn.Module):
                                     kernel_size=1
         )
 
-
     def forward(self, x):
         # x: (B, T, D)
-        x = x.transpose(1, 2)   # (B, D, T)
+        x = x.permute(0, 2, 1)   # (B, D, T)
         x = self.network(x)
         x = self.classifier(x)
-        out = x.transpose(1, 2) # (B, T, 1)
+        out = x.squeeze(1)       # (B, T)
 
-        return torch.sigmoid(out)
+        return out

@@ -21,6 +21,7 @@ class BiLSTM(nn.Module):
     def forward(self, x):
         # x: (B, T, D)
         x, _ = self.lstm(x)         # (B, T, 2 * hidden_dim)
-        out = self.classifier(x)    # (B, T, 1)
+        x = self.classifier(x)      # (B, T, 1)
+        out = x.squeeze(-1)         # (B, T)
 
         return out
