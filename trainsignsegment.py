@@ -23,10 +23,15 @@ def run_epoch(model, loader, criterion, optimiser, device,
               training:bool, lambda_smooth):
     model.train() if training else model.eval()
     total_loss = 0.0
+    total = 0
+    correct = 0
     with torch.set_grad_enabled(training):
         for x, y, lengths in loader:
             x = x.to(device)
             y = y.to(device)
+
+            if training:
+                optimiser.zero_grad()
 
             pred = model(x)
             bce = criterion(pred, y)
@@ -34,11 +39,27 @@ def run_epoch(model, loader, criterion, optimiser, device,
             loss = bce + lambda_smooth * smooth
 
             if training:
-                optimiser.zero_grad()
                 loss.backward()
                 optimiser.step()
+            else:
+                with torch.no_grad():
+
+
+                    min_y = y.min()
+                    max_y = y.max()
+                    percent = 0.8
+                    th = min_y + percent * (max_y - min_y)
+                    th_y = (y >= th).float()
+                    th_pred = (pred >= th).float()
+                    mask = (th_y == 1.0)
+                    pred_ones = th_pred[mask]
+                    total += (mask == 1).sum().item()
+                    correct += (pred_ones == 1).sum().item()
 
             total_loss += loss.item()
+        if not training:
+            accuracy = correct / total
+            print(f"correct/total: {correct}/{total};  accuracy: {accuracy}")
         avg_loss = total_loss / len(loader)
 
     return avg_loss
@@ -66,6 +87,16 @@ if __name__ == "__main__":
     )
     print(f"DataLoader from {len(train_files)} files... OK")
 
+    validate_files = get_filelist("../segprop_dev/")
+    validate_dataset = SignSegmentDataset(validate_files)
+    validate_loader = DataLoader(
+        validate_dataset,
+        batch_size=4,
+        shuffle=True,
+        collate_fn=collate_fn
+    )
+    print(f"DataLoader from {len(validate_files)} files... OK")
+
     # model = TemporalCNN(input_dim=3, hidden_dim=64, num_layers=4)
     model = BiLSTM(input_dim=3, hidden_dim=64, num_layers=1)
     model = model.to(device)
@@ -81,3 +112,6 @@ if __name__ == "__main__":
         avg_loss = run_epoch(model, train_loader, criterion, optimiser, device,
                              True, lambda_smooth)
         print(f"Epoch {epoch+1}: Training avg. loss: {avg_loss:.4f}")
+        avg_loss = run_epoch(model, validate_loader, criterion, optimiser, device,
+                             False, lambda_smooth)
+        print(f"Epoch {epoch+1}: Evaluate avg. loss: {avg_loss:.4f}")
