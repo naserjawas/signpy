@@ -124,5 +124,5 @@ if __name__ == "__main__":
         if acc > best_acc:
             best_acc = acc
             torch.save(model.state_dict(), "best_model.pth")
-            print(f"Model saved with best acc: {best_acc}")
+            print(f"Model saved with best acc: {best_acc:.4f}")
     print(f"Training finised in {num_epochs+1} epoch")
