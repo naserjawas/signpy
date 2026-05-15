@@ -25,6 +25,7 @@ def run_epoch(model, loader, criterion, optimiser, device,
     total_loss = 0.0
     total = 0
     correct = 0
+    accuracy = 0
     with torch.set_grad_enabled(training):
         for x, y, lengths in loader:
             x = x.to(device)
@@ -62,10 +63,9 @@ def run_epoch(model, loader, criterion, optimiser, device,
             total_loss += loss.item()
         if not training:
             accuracy = correct / total
-            print(f"correct/total: {correct}/{total};  accuracy: {accuracy}")
         avg_loss = total_loss / len(loader)
 
-    return avg_loss
+    return avg_loss, accuracy
 
 def get_filelist(dirname):
     dirpath = Path(dirname)
@@ -109,12 +109,20 @@ if __name__ == "__main__":
 
     num_epochs = 30
     lambda_smooth = 0.1
+    best_acc = 0
 
     print("Epoch started...")
     for epoch in range(num_epochs):
-        avg_loss = run_epoch(model, train_loader, criterion, optimiser, device,
-                             True, lambda_smooth)
-        print(f"Epoch {epoch+1}: Training avg. loss: {avg_loss:.4f}")
-        avg_loss = run_epoch(model, validate_loader, criterion, optimiser, device,
-                             False, lambda_smooth)
-        print(f"Epoch {epoch+1}: Evaluate avg. loss: {avg_loss:.4f}")
+        print(f"Epoch {epoch+1}:")
+        avg_loss, acc = run_epoch(model, train_loader, criterion, optimiser,
+                                  device, True, lambda_smooth)
+        print(f"Training avg. loss: {avg_loss:.4f}")
+        avg_loss, acc = run_epoch(model, validate_loader, criterion, optimiser,
+                                  device, False, lambda_smooth)
+        print(f"Evaluate avg. loss: {avg_loss:.4f}, acc: {acc:.4f}")
+
+        if acc > best_acc:
+            best_acc = acc
+            torch.save(model.state_dict(), "best_model.pth")
+            print(f"Model saved with best acc: {best_acc}")
+    print(f"Training finised in {num_epochs+1} epoch")
