@@ -43,14 +43,17 @@ def run_epoch(model, loader, criterion, optimiser, device,
                 optimiser.step()
             else:
                 with torch.no_grad():
-
-
                     min_y = y.min()
                     max_y = y.max()
                     percent = 0.8
-                    th = min_y + percent * (max_y - min_y)
-                    th_y = (y >= th).float()
-                    th_pred = (pred >= th).float()
+                    th1 = min_y + percent * (max_y - min_y)
+                    th_y = (y >= th1).float()
+
+                    min_pred = pred.min()
+                    max_pred = pred.max()
+                    th2 = min_pred + percent * (max_pred - min_pred)
+                    th_pred = (pred >= th2).float()
+
                     mask = (th_y == 1.0)
                     pred_ones = th_pred[mask]
                     total += (mask == 1).sum().item()
