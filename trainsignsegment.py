@@ -23,9 +23,12 @@ def run_epoch(model, loader, criterion, optimiser, device,
               training:bool, lambda_smooth):
     model.train() if training else model.eval()
     total_loss = 0.0
-    total = 0
-    correct = 0
-    accuracy = 0
+    totalpositive = 0
+    truepositive = 0
+    sensitivity = 0
+    totalnegative = 0
+    truenegative = 0
+    specificity = 0
     with torch.set_grad_enabled(training):
         for x, y, lengths in loader:
             x = x.to(device)
@@ -46,7 +49,7 @@ def run_epoch(model, loader, criterion, optimiser, device,
                 with torch.no_grad():
                     min_y = y.min()
                     max_y = y.max()
-                    percent = 0.8
+                    percent = 0.5
                     th1 = min_y + percent * (max_y - min_y)
                     th_y = (y >= th1).float()
 
@@ -55,17 +58,26 @@ def run_epoch(model, loader, criterion, optimiser, device,
                     th2 = min_pred + percent * (max_pred - min_pred)
                     th_pred = (pred >= th2).float()
 
+                    # Sensitivity
                     mask = (th_y == 1.0)
                     pred_ones = th_pred[mask]
-                    total += (mask == 1).sum().item()
-                    correct += (pred_ones == 1).sum().item()
+                    truepositive += (pred_ones == 1).sum().item()
+                    totalpositive += (mask == 1).sum().item()
+
+                    # Specificity
+                    mask = (th_y == 0.0)
+                    pred_zeros = th_pred[mask]
+                    truenegative += (pred_zeros == 0).sum().item()
+                    totalnegative += (mask == 1).sum().item()
 
             total_loss += loss.item()
         if not training:
-            accuracy = correct / total
+            sensitivity = truepositive / totalpositive
+            specificity = truenegative / totalnegative
+
         avg_loss = total_loss / len(loader)
 
-    return avg_loss, accuracy
+    return avg_loss, sensitivity, specificity
 
 def get_filelist(dirname):
     dirpath = Path(dirname)
@@ -109,20 +121,26 @@ if __name__ == "__main__":
 
     num_epochs = 30
     lambda_smooth = 0.1
-    best_acc = 0
+    best_sens = 0
+    best_spec = 0
 
     print("Epoch started...")
     for epoch in range(num_epochs):
         print(f"Epoch {epoch+1}:")
-        avg_loss, acc = run_epoch(model, train_loader, criterion, optimiser,
-                                  device, True, lambda_smooth)
+        avg_loss, sens, spec = run_epoch(model, train_loader, criterion,
+                                         optimiser, device, True,
+                                         lambda_smooth)
         print(f"Training avg. loss: {avg_loss:.4f}")
-        avg_loss, acc = run_epoch(model, validate_loader, criterion, optimiser,
-                                  device, False, lambda_smooth)
-        print(f"Evaluate avg. loss: {avg_loss:.4f}, acc: {acc:.4f}")
+        avg_loss, sens, spec = run_epoch(model, validate_loader, criterion,
+                                         optimiser, device, False,
+                                         lambda_smooth)
+        print(f"Evaluate avg. loss: {avg_loss:.4f}")
+        print(f"Sensitivity: {sens:.4f}, Specificity: {spec:.4f}")
 
-        if acc > best_acc:
-            best_acc = acc
+        if sens > best_sens:
+            best_sens = sens
+            best_spec = spec
             torch.save(model.state_dict(), "best_model.pth")
-            print(f"Model saved with best acc: {best_acc:.4f}")
-    print(f"Training finised in {num_epochs+1} epoch")
+            print(f"Model saved with:")
+            print(f"Sensitivity: {sens:.4f}, Specificity: {spec:.4f}")
+    print(f"Training finised in {num_epochs} epoch")
