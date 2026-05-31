@@ -14,7 +14,7 @@ argument:
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, savgol_filter
 from scipy.ndimage import gaussian_filter1d
 
 def parse_args():
@@ -69,10 +69,14 @@ def main():
     t = np.arange(T)
 
     if args.smoothen:
-        boundary_score = gaussian_filter1d(boundary_score, sigma=2)
-        speed_score = gaussian_filter1d(speed_score, sigma=2)
-        direction_score = gaussian_filter1d(direction_score, sigma=2)
-        orientation_score = gaussian_filter1d(orientation_score, sigma=2)
+        # boundary_score = gaussian_filter1d(boundary_score, sigma=2)
+        # speed_score = gaussian_filter1d(speed_score, sigma=2)
+        # direction_score = gaussian_filter1d(direction_score, sigma=2)
+        # orientation_score = gaussian_filter1d(orientation_score, sigma=2)
+        boundary_score = savgol_filter(boundary_score, window_length=11, polyorder=3)
+        speed_score = savgol_filter(speed_score, window_length=11, polyorder=3)
+        direction_score = savgol_filter(direction_score, window_length=11, polyorder=3)
+        orientation_score = savgol_filter(orientation_score, window_length=11, polyorder=3)
 
     # plot 1
     plt.figure()
